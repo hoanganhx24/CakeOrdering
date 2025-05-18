@@ -1,8 +1,12 @@
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
 
 const OrderSuccess = () => {
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
     return (
         <div>
 <div className=' sticky z-10 top-0'>

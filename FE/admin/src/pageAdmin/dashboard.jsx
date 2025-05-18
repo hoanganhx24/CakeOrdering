@@ -1,4 +1,5 @@
 import { IoNewspaperOutline, IoChevronBack, IoChevronForward } from "react-icons/io5";
+import { VscSearch } from "react-icons/vsc";
 import { FiClock, FiCheckCircle, FiXCircle, FiAlertCircle } from "react-icons/fi";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -13,6 +14,11 @@ const Dashboard = () => {
     const [filterStatus, setFilterStatus] = useState("");
     const [orderDetail, setOrderDetail] = useState({});
     const [showDetail, setShowDetail] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+    const [totalDocs, setTotalDocs] = useState(0);
+    const [pagingCounter, setPagingCounter] = useState(0);
 
 
     const totalSales = 100000000000;
@@ -27,6 +33,9 @@ const Dashboard = () => {
                         _page: page,
                         _limit: limit,
                         _status: filterStatus,
+                        _startDate: startDate,
+                        _endDate: endDate,
+                        _search: searchTerm
                     },
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -36,13 +45,17 @@ const Dashboard = () => {
                 setOrders(response.data.docs);
                 setHasPrevPage(response.data.hasPrevPage);
                 setHasNextPage(response.data.hasNextPage);
+                setTotalDocs(response.data.totalDocs);
+                setPagingCounter(response.data.pagingCounter);
             }
             catch (error) {
                 console.error("Error fetching orders:", error);
             }
         }
         fetchOrders();
-    }, [page, limit, filterStatus]);
+    }, [page, limit, filterStatus, searchTerm, startDate, endDate]);
+    console.log(startDate, endDate);
+    console.log(searchTerm);
 
     // Status configuration for consistent styling
     const statusConfig = {
@@ -80,40 +93,89 @@ const Dashboard = () => {
 
     return (
         <div className="ml-80 w-full bg-gray-50 rounded-2xl p-6 shadow-sm">
-            {/* Header with sales summary */}
-            <div className="flex justify-between items-center mb-8">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Order Dashboard</h1>
-                    <p className="text-gray-500">Manage and track customer orders</p>
+            {/* Header with all filters */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                {/* Title section */}
+                <div className="order-1 md:order-none">
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Order Dashboard</h1>
+                    <p className="text-gray-500 text-sm md:text-base">Manage and track customer orders</p>
                 </div>
-                <div className="ml-4">
-                    <label className="text-sm text-gray-700 mr-2">Filter by status:</label>
-                    <select
-                        value={filterStatus}
-                        onChange={(e) => {
-                            setPage(1); // reset về trang đầu khi lọc
-                            setFilterStatus(e.target.value);
-                        }}
-                        className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A78A8A]"
-                    >
-                        <option value="">All</option>
-                        <option value="pending">Pending</option>
-                        <option value="confirmed">Confirmed</option>
-                        <option value="shipping">Shipping</option>
-                        <option value="delivered">Delivered</option>
-                        <option value="cancelled">Cancelled</option>
-                    </select>
-                </div>
-                <div className="bg-white p-4 rounded-lg shadow-sm flex items-center">
-                    <div className="bg-[#F8E9E7] p-3 rounded-full mr-4">
-                        <IoNewspaperOutline size={24} className="text-[#A78A8A]" />
+
+                {/* Filters section */}
+                <div className="w-full md:w-auto order-3 md:order-none flex flex-col md:flex-row items-start md:items-center gap-4">
+                    {/* Date range filter */}
+                    <div className="flex items-center gap-2 w-full md:w-auto">
+                        <div className="relative">
+                            <label htmlFor="startDate" className="sr-only">Start date</label>
+                            <input
+                                type="date"
+                                id="startDate"
+                                value={startDate}
+                                onChange={(e) => {
+                                    setPage(1);
+                                    setStartDate(e.target.value);
+                                }}
+                                className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A78A8A]"
+                            />
+                        </div>
+                        <span className="text-gray-500">to</span>
+                        <div className="relative">
+                            <label htmlFor="endDate" className="sr-only">End date</label>
+                            <input
+                                type="date"
+                                id="endDate"
+                                value={endDate}
+                                onChange={(e) => {
+                                    setPage(1);
+                                    setEndDate(e.target.value);
+                                }}
+                                className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A78A8A]"
+                                min={startDate} // Ngày kết thúc không được trước ngày bắt đầu
+                            />
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-sm text-gray-500">Total Sales</p>
-                        <p className="text-2xl font-bold">{totalSales.toLocaleString()} VND</p>
+
+                    {/* Status filter */}
+                    <div className="w-full md:w-auto">
+                        <label htmlFor="statusFilter" className="sr-only">Filter by status</label>
+                        <select
+                            id="statusFilter"
+                            value={filterStatus}
+                            onChange={(e) => {
+                                setPage(1);
+                                setFilterStatus(e.target.value);
+                            }}
+                            className="w-full md:w-40 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A78A8A]"
+                        >
+                            <option value="">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="shipping">Shipping</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
                     </div>
                 </div>
 
+                {/* Search bar */}
+                <div className="order-2 md:order-none w-full md:w-auto">
+                    <div className="relative">
+                        <VscSearch
+                            size={20}
+                            className="text-gray-600 absolute left-3 top-1/2 transform -translate-y-1/2"
+                        />
+                        <input
+                            type="search"
+                            placeholder="Search orders..."
+                            className="w-full md:w-64 placeholder-gray-500 h-10 pl-10 pr-4 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#A78A8A]"
+                            value={searchTerm}
+                            onChange={(e) => {
+                                setPage(1);
+                                setSearchTerm(e.target.value);
+                            }}
+                        />
+                    </div>
+                </div>
             </div>
 
             {/* Orders Table */}
@@ -125,7 +187,7 @@ const Dashboard = () => {
                                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Customer</th>
                                 {/* <th className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Contact</th> */}
                                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Products</th>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Delivery Date</th>
+                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Created Date</th>
                                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Total</th>
                                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Status</th>
                                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Details</th>
@@ -151,7 +213,9 @@ const Dashboard = () => {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                                        {order.deliveryInfo.deliveryDate}
+                                        {new Date(order.createdAt).toLocaleDateString("vi-VN", {
+                                            timeZone: "Asia/Ho_Chi_Minh",
+                                        })}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap font-medium">
                                         {parseInt(order.totalPrice).toLocaleString()} VND
@@ -186,8 +250,8 @@ const Dashboard = () => {
                 {orders.length > 0 && (
                     <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
                         <div className="text-sm text-gray-500">
-                            Showing <span className="font-medium">1</span> to <span className="font-medium">{orders.length}</span> of{' '}
-                            <span className="font-medium">{orders.length}</span> orders
+                            Showing <span className="font-medium">{pagingCounter}</span> to <span className="font-medium">{orders.length + pagingCounter - 1}</span> of{' '}
+                            <span className="font-medium">{totalDocs}</span> orders
                         </div>
                         <div className="flex space-x-2">
                             <button className="p-2 rounded-md bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-50" onClick={() => setPage(page - 1)} disabled={!hasPrevPage}>
@@ -245,7 +309,9 @@ const Dashboard = () => {
                                 </p>
                                 <p className="flex items-center gap-2">
                                     <span className="font-medium text-gray-700">Ngày nhận:</span>
-                                    {orderDetail.deliveryInfo?.deliveryDate || "Không có thông tin"}
+                                    {new Date(orderDetail.deliveryInfo.deliveryDate).toLocaleDateString("vi-VN", {
+                                            timeZone: "Asia/Ho_Chi_Minh",
+                                        })}
                                 </p>
                                 <p className="flex items-center gap-2">
                                     <span className="font-medium text-gray-700">Giờ nhận:</span>

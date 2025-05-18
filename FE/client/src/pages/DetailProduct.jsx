@@ -82,44 +82,73 @@ const DetailProduct = () => {
     //     return <h1 className="text-center text-xl font-bold mt-10">Product Not Found</h1>;
     // }
     return (
-        <div>
-            <div className=' sticky z-10 top-0'>
+        <div className="min-h-screen flex flex-col">
+            {/* Header */}
+            <header className="sticky z-10 top-0 bg-white shadow-sm">
                 <Header />
-            </div>
-            <div className="flex justify-center items-center h-150 relative">
-                <div className=" bg-gray-50 w-3/5 absolute top-0 flex h-3/4 shadow-2xl rounded-lg">
-                    <img src={product.photo} alt="cake" className="w-3/8 mx-8 my-8" />
-                    <div className="w-2/3 my-8 mr-8 flex flex-col relative">
-                        <div className="text-3xl font-bold">{product.name}</div>
-                        <div className="text-xl mt-4 font-bold">
-                            Price: {product.price} VND
-                        </div>
-                        <div className="text-xl mt-4">
-                            Soft, fluffy, and perfectly balanced in flavor, this treat offers a delightful sweetness with every bite. With a golden, slightly crisp exterior and a tender, airy interior, it melts in your mouth effortlessly. Made from the finest ingredients, it delivers rich taste and irresistible aroma.
-                        </div>
-                        <div className="text-xl mt-4">
-                            <label htmlFor="quantity" className="text-xl font-bold">Quantity:</label>
-                            <input type="number"
-                                id="quantity"
-                                min={1}
-                                className="border-2 border-gray-400 ml-4 w-16 text-center focus:outline-gray-400"
-                                defaultValue={1}
-                                onChange={(e) => { setquantity(parseInt(e.target.value)) }} />
-                        </div>
-                        <div className="h-14 flex gap-30 absolute bottom-0">
+            </header>
 
-                            <button
-                                onClick={() => handleAddToCart(product._id, quantity)}
-                                className='px-6 bg-[#F8E9E7] rounded-[8px] text-xl font-bold '>
-                                Add to Cart
-                            </button>
+            {/* Main Content */}
+            <main className="flex-1">
+                {/* Product Section */}
+                <section className="container mx-auto px-4 py-12">
+                    <div className="bg-white rounded-xl shadow-lg overflow-hidden max-w-5xl mx-auto">
+                        <div className="md:flex">
+                            {/* Product Image */}
+                            <div className="md:w-2/5 p-6 flex items-center justify-center bg-gray-50">
+                                <img
+                                    src={product.photo}
+                                    alt={product.name}
+                                    className="w-full h-auto max-h-96 object-contain"
+                                />
+                            </div>
+
+                            {/* Product Info */}
+                            <div className="md:w-3/5 p-8">
+                                <h1 className="text-3xl font-semibold text-gray-900 mb-4">{product.name}</h1>
+                                <p className="text-2xl font-bold text-[#A78A8A] mb-6">{product.price} VND</p>
+
+                                <p className="text-gray-600 mb-8 leading-relaxed">
+                                    Soft, fluffy, and perfectly balanced in flavor, this treat offers a delightful sweetness with every bite.
+                                    With a golden, slightly crisp exterior and a tender, airy interior, it melts in your mouth effortlessly.
+                                </p>
+
+                                <div className="flex items-center mb-8">
+                                    <label htmlFor="quantity" className="text-gray-700 font-medium mr-4">Quantity:</label>
+                                    <input
+                                        type="number"
+                                        id="quantity"
+                                        min={1}
+                                        className="border border-gray-300 rounded px-3 py-2 w-20 text-center focus:outline-none focus:ring-2 focus:ring-[#A78A8A]"
+                                        defaultValue={1}
+                                        onChange={(e) => setquantity(parseInt(e.target.value))}
+                                    />
+                                </div>
+
+                                <button
+                                    onClick={() => handleAddToCart(product._id, quantity)}
+                                    className="px-8 py-3 bg-[#A78A8A] text-white font-medium rounded-lg hover:bg-[#A78A8A]/30 hover:text-black transition-colors"
+                                >
+                                    Add to Cart
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-            <Footer />
-            <ToastContainer
-            />
+                </section>
+
+                {/* Similar Products */}
+                {/* <section className="container mx-auto px-4 pb-16">
+                    <h2 className="text-2xl font-semibold text-gray-900 mb-8">Similar Products</h2>
+
+                </section> */}
+            </main>
+
+            {/* Footer */}
+            <footer className="bg-gray-50">
+                <Footer />
+            </footer>
+
+            <ToastContainer />
         </div>
     );
 };

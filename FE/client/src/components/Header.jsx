@@ -42,7 +42,7 @@ const Header = () => {
     }, [isAuthenticated, cart]);
 
     return (
-        <div className="bg-[#F8E9E7] px-30 py-4 flex items-center justify-between">
+        <div className="bg-[#F8E9E7] px-30 py-4 flex items-center justify-between shadow-md">
             {/* Logo + Tên thương hiệu */}
             <div className="flex items-center gap-3">
                 <img src="../../public/logo.png" alt="HP Cakes Logo" className="w-12 h-12" />

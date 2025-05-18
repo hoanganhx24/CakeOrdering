@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { useState } from "react";
 import axios from "axios";
 import { IoTodayOutline } from "react-icons/io5";
+import { ToastContainer, toast } from 'react-toastify';
 
 const Cart = () => {
     const { orders, addOrder } = useOrder();
@@ -102,8 +103,15 @@ const Cart = () => {
             });
             console.log(response.data);
             if (response.status === 201){
-                alert("Đặt hàng thành công!");
-                navigate("/ordersuccess");
+                toast.success("Đặt hàng thành công!", {
+                    position: "top-center",
+                    autoClose: 2000,
+                    hideProgressBar: false
+                    , closeOnClick: true,
+                    pauseOnHover: true,});
+                setTimeout(() => {
+                    navigate("/ordersuccess");
+                }, 3000);
             }
         }
         catch (error) {
@@ -175,7 +183,7 @@ const Cart = () => {
                                 value={phone}
                                 className="w-full p-3 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-[#F8E9E7]"
                                 placeholder="0987 654 321"
-                                pattern="[0-9]{10}"
+                                pattern="0[0-9]{9}"
                                 required
                             />
                         </div>
@@ -307,6 +315,7 @@ const Cart = () => {
                 </div>
             </div>
             <Footer />
+            <ToastContainer />
 
         </div>
     );

@@ -62,6 +62,10 @@ module.exports.login = asyncHandler(async (req, res) => {
     }
 
     const user = await User.findOne({ username: username});
+    if (!user){
+        res.status(401);
+        throw new Error('User not found');
+    }
     const _token = user.getSignedToken();
     if (user && (await user.matchPassword(password))) {
         res.status(200).cookie('token', _token).json({

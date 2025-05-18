@@ -14,6 +14,7 @@ import Lottie from 'lottie-react';
 import animationData from '../../public/Animation - 1746086106206.json';
 import { useEffect } from "react";
 import axios from "axios";
+import { ToastContainer, toast } from 'react-toastify';
 
 const Login = () => {
     const [username, setusername] = useState("");
@@ -47,6 +48,13 @@ const Login = () => {
         }catch (error) {
             console.error("Login error:", error);
             setError("Login failed. Please check your credentials.");
+            if (error.response && error.response.status === 401) {
+                toast.error("Sai tài khoản hoặc mật khẩu!", {
+                    position: "top-center",
+                    autoClose: 2000,
+                });
+            }
+
         }
         // if (success) {
         //     navigate(username === "admin" ? "/homeAdmin" : "/");
@@ -94,18 +102,20 @@ const Login = () => {
 
                     </div>
                     <div className="bg-gray-100 p-12 flex flex-col justify-center items-center w-100 h-125 rounded-r-lg">
-                        <h2 className="text-2xl font-merienda font-bold text-[#705959]">Welcome Back!</h2>
+                        <h2 className="text-2xl font-bold text-[#705959]">Welcome Back!</h2>
 
                         <div className="mt-8">
                             <form action="" onSubmit={handleLogin}>
                                 {/* Username */}
-                                <label htmlFor="userName" className=" text-gray-500 font-merienda">Username</label>
+                                <label htmlFor="userName" className=" text-gray-500 font-bold">Username</label>
                                 <div className="flex items-center rounded-lg  border border-gray-300 bg-white mb-4">
                                     <FaUser className="text-[#F16464] text-2xl mx-3" />
                                     <input
                                         type="text"
                                         id="userName"
-                                        className="py-2 px-1 w-full focus:outline-none font-merienda text-gray-500 bg-transparent"
+                                        required
+                                        pattern="[A-Za-z0-9]+"
+                                        className="py-2 px-1 w-full focus:outline-none text-gray-500 bg-transparent"
                                         value={username}
                                         onChange={(e) => setusername(e.target.value)}
                                         placeholder="Enter your username"
@@ -125,6 +135,7 @@ const Login = () => {
                                         onChange={(e) => {
                                             setpassword(e.target.value);
                                         }}
+                                        required
                                     />
                                 </div>
 
@@ -154,6 +165,7 @@ const Login = () => {
 
             </div>
             <Footer />
+            <ToastContainer />
         </div>
     );
 }

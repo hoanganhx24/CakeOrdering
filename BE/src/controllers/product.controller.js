@@ -202,8 +202,11 @@ module.exports.updateProduct = asyncHandler(async (req, res) => {
 module.exports.deleteProduct = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const product = await Product.findById(id);
+    const imageURL = product.photo;
+    const imageId = imageURL.match(/upload\/(?:v\d+\/)?(.+)\.\w+$/)?.[1];
     if (product) {
         await product.deleteOne();
+        await cloudinary.uploader.destroy(imageId);
         res.status(200).json({ message: 'Product removed' });
     }
     else {

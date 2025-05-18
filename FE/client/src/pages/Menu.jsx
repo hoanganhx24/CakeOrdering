@@ -8,6 +8,8 @@ import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import axios from "axios";
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 
 
 const categories = ["ALL", "BIRTHDAY CAKE", "COOKIE", "BREAD", "PASTRY"];
@@ -24,7 +26,7 @@ const Menu = () => {
 
 
     useEffect(() => {
-        // window.scrollTo(0, 0);
+        window.scrollTo(0, 0);
         const fetchProducts = async () => {
             try {
                 const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/menu`,
@@ -41,6 +43,7 @@ const Menu = () => {
                 );
                 setProducts(response.data.docs);
                 setTotalPages(response.data.totalPages);
+                
             } catch (error) {
                 setProducts([]);
                 console.error("Error fetching products:", error);
@@ -84,12 +87,19 @@ const Menu = () => {
                     </div>
 
                     {/* Search */}
-                    <div className="w-full mt-20 border-3 border-black flex items-center">
-                        <VscSearch size={20} className="text-gray-600 ml-3" />
-                        <input type="search" placeholder="Search for preferred products" className="placeholder-gray-500 w-full h-10 outline-none ml-4" value={searchTerm}
+                    <div className="w-full max-w-4xl relative mt-16 group">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                            <VscSearch size={24} className="text-gray-500 group-hover:text-gray-700 transition-colors" />
+                        </div>
+                        <input
+                            type="search"
+                            placeholder="Search for preferred products..."
+                            className="block w-full h-14 pl-14 pr-6 text-lg rounded-xl border-2 border-gray-300 bg-white shadow-sm hover:border-[#F16464] focus:border-[#F16464] focus:ring-2 focus:ring-[#F8E9E7] outline-none transition-all duration-300"
+                            value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
+                    
 
                     <div className="flex relative w-full justify-center items-center">
                         {/* Tag */}
@@ -100,6 +110,7 @@ const Menu = () => {
                                         key={category}
                                         className={`border-2 border-gray-400 rounded-md px-4 py-2 hover:bg-[#F8E9E7] hover:text-black ${selectedCategory === category ? "bg-[#F8E9E7] text-black" : ""}`}
                                         onClick={() => {
+                                            AOS.refresh()
                                             setSelectedCategory(category);
                                             navigate(`/menu/${category}`);
                                         }}
@@ -109,23 +120,27 @@ const Menu = () => {
                                 );
                             })}
                         </div>
-
+                        {/* Sort */}
                         <div className="flex gap-6 mt-20 justify-center items-center absolute right-8">
                             {/* <div className=" text-2xl ">Sap xep theo:</div> */}
-                            <select className="border-3 border-gray-400 rounded-md h-10 w-40 text-black hover:bg-[#F8E9E7] hover:text-black" onChange={(e) => setSortOption(e.target.value)} value={sortOption}>
-                                <option value="">Mac dinh</option>
-                                <option value="asc">Gia tang dan</option>
-                                <option value="desc">Gia giam dan</option>
+                            <select className=" rounded-md h-10 w-40 bg-white border-2 border-gray-200 text-gray-600 text-lg font-medium focus:border-[#F16464] focus:outline-none focus:ring-2 focus:ring-[#F8E9E7] transition-all duration-300 hover:border-gray-300" onChange={(e) => setSortOption(e.target.value)} value={sortOption}>
+                                <option value="">Default sorting</option>
+                                <option value="asc">Price: Low to High</option>
+                                <option value="desc">Price: High to Low</option>
                             </select>
                         </div>
                     </div>
 
                     {/* Products */}
-                    <div className="grid grid-cols-4 gap-10 mt-20">
+                    <div className="grid grid-cols-4 gap-10 mt-20 p-10 rounded-lg">
                         {products.map((product, index) => {
                             return (
                                 <Link to={`/detail/${product._id}`} key={product._id}>
-                                    <div className="flex flex-col bg-[#F8E9E7] rounded-lg hover:scale-105 hover:bg-[#F16464]/30 transition-all duration-300 ease-in-out">
+                                    <div className="flex flex-col bg-[#F8E9E7] rounded-lg hover:scale-105 hover:bg-[#F16464]/30 transition-all duration-300 ease-in-out"
+                                        data-aos="fade-up"
+                                        data-aos-duration="800"
+                                        data-aos-once="false"
+                                    >
                                         <img src={product.photo} alt={product.name} className="mx-4 my-4 w-[243px] h-[247px]" />
                                         <div className="text-xl mt-4 mx-4">
                                             {product.name}

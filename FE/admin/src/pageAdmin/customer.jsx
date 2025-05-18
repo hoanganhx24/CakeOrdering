@@ -14,6 +14,10 @@ const Customer = () => {
     const [limit, setLimit] = useState(5);
     const [searchTerm, setSearchTerm] = useState("");
     const [totalPages, setTotalPages] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const [hasPrevPage, setHasPrevPage] = useState(false);
+    const [hasNextPage, setHasNextPage] = useState(false);
+    const [pagingCounter, setPagingCounter] = useState(0);
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -23,36 +27,65 @@ const Customer = () => {
                         _page: page,
                         _limit: limit,
                         _search: searchTerm,
+                        _role: "customer"
                     },
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem("token")}`,
                     },
                 });
+                console.log(response.data);
+                console.log(response.status);
                 if (response.status === 200) {
                     setUsers(response.data.docs);
-                    setTotalPages(response.data.totalPages);
+                    setTotalPages(response.data.totalDocs);
+                    setHasPrevPage(response.data.hasPrevPage);
+                    setHasNextPage(response.data.hasNextPage);
+                    setPagingCounter(response.data.pagingCounter);
                 } else {
-                    toast.error("Failed to fetch users");
+                    setUsers([]);
+                    setTotalPages(0);
                 }
             }
             catch (error) {
-                console.error("Error fetching users:", error);
-                toast.error("Failed to fetch users");
+                if (error.status === 404){
+                    setUsers([]);
+                    setTotalPages(0);
+                }
             }
         }
         fetchUsers();
-    }, [page, limit, searchTerm]);
+    }, [page, limit, searchTerm, loading]);
 
-    const handleDeleteClick = (id, position) => {
-        if (position !== "Manager") {
-            setSelectId(id);
-            setShowConfirm(true);
-        }
+    const handleDeleteClick = (id) => {
+        setSelectId(id);
+        setShowConfirm(true);
     }
 
-    const handleConfirmDelete = () => {
-        setUsers(users.filter(user => user.id !== selectId));
+    const handleConfirmDelete = async () => {
+        try {
+            const response = await axios.delete(`${import.meta.env.VITE_API_URL}/api/user/${selectId}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            if (response.status === 200) {
+                toast.success("Đã xóa tài khoản thành công", {
+                    autoClose:3000
+                });
+                setTimeout(() => {
+                    setPage(1);
+                }
+                , 4000); 
+            }
+        }
+        catch (error) {
+            console.error("Error deleting user:", error);
+            toast.error("Failed to delete user");
+        }
+        finally {
+            setSelectId(null);
         setShowConfirm(false);
+        }
     }
 
     // const filteredUsers = users.filter(user =>
@@ -72,9 +105,9 @@ const Customer = () => {
                 </div>
                 <div className="relative">
                     <VscSearch size={20} className="text-gray-600 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                    <input 
-                        type="search" 
-                        placeholder="Search customers..." 
+                    <input
+                        type="search"
+                        placeholder="Search customers..."
                         className="placeholder-gray-500 h-10 pl-10 pr-4 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#A78A8A] w-64"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -89,11 +122,11 @@ const Customer = () => {
                         <thead className="bg-[#F8E9E7]">
                             <tr>
                                 {/* <th className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">ID</th> */}
-                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Name</th>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Phone</th>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Email</th>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Username</th>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Actions</th>
+                                <th className="px-6 py-4 text-center text-sm font-medium text-gray-700 uppercase tracking-wider">Name</th>
+                                <th className="px-6 py-4 text-center text-sm font-medium text-gray-700 uppercase tracking-wider">Email</th>
+                                <th className="px-6 py-4 text-center text-sm font-medium text-gray-700 uppercase tracking-wider">Username</th>
+                                {/* <th className="px-6 py-4 text-center text-sm font-medium text-gray-700 uppercase tracking-wider">Password</th> */}
+                                <th className="px-6 py-4 text-center text-sm font-medium text-gray-700 uppercase tracking-wide">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -102,26 +135,26 @@ const Customer = () => {
                                     {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {user.id}
                                     </td> */}
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                                    <td className="px-6 py-4 whitespace-nowrap text-center">
                                         <div className="text-sm font-medium text-gray-900">{user.name}</div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        0926325371
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                                         {user.email}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                                         {user.username}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <div className="flex space-x-2">
-                                            <button className="text-[#A78A8A] hover:text-[#8a6e6e] p-1 rounded">
+                                    {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        0926325371
+                                    </td> */}
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium items-cente">
+                                        <div className="flex justify-center space-x-2 items-center">
+                                            {/* <button className="text-[#A78A8A] hover:text-[#8a6e6e] p-1 rounded">
                                                 <FiEdit2 size={18} />
-                                            </button>
-                                            <button 
+                                            </button> */}
+                                            <button
                                                 className="text-red-600 hover:text-red-800 p-1 rounded"
-                                                onClick={() => handleDeleteClick(user.id, user.position)}
+                                                onClick={() => handleDeleteClick(user._id)}
                                             >
                                                 <FiTrash2 size={18} />
                                             </button>
@@ -137,25 +170,25 @@ const Customer = () => {
                 {users.length > 0 ? (
                     <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
                         <div className="text-sm text-gray-500">
-                            Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{' '}
-                            <span className="font-medium">{Math.min(page * limit, users.length)}</span> of{' '}
-                            <span className="font-medium">{users.length}</span> customers
+                            Showing <span className="font-medium">{pagingCounter}</span> to{' '}
+                            <span className="font-medium">{pagingCounter + limit - 1}</span> of{' '}
+                            <span className="font-medium">{totalPages}</span> customers
                         </div>
                         <div className="flex space-x-2">
-                            <button 
-                                className="p-2 rounded-md bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-50" 
-                                onClick={() => setPage(p => Math.max(p - 1, 1))} 
-                                disabled={page === 1}
+                            <button
+                                className="p-2 rounded-md bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-50"
+                                onClick={() => setPage(page - 1)}
+                                disabled={!hasPrevPage}
                             >
                                 <IoChevronBack />
                             </button>
                             <button className="px-4 py-2 rounded-md bg-[#A78A8A] text-white font-medium">
                                 {page}
                             </button>
-                            <button 
-                                className="p-2 rounded-md bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-50" 
-                                onClick={() => setPage(p => Math.min(p + 1, totalPages))} 
-                                disabled={page === totalPages}
+                            <button
+                                className="p-2 rounded-md bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-50"
+                                onClick={() => setPage(page + 1)}
+                                disabled={!hasNextPage}
                             >
                                 <IoChevronForward />
                             </button>
@@ -193,7 +226,9 @@ const Customer = () => {
                     </div>
                 </div>
             )}
+        <ToastContainer />
         </div>
+
     );
 }
 

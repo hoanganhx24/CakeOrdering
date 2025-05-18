@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useEffect } from "react";
 import { ToastContainer, toast } from 'react-toastify';
+import { IoNewspaperOutline, IoChevronBack, IoChevronForward } from "react-icons/io5";
 
 
 const Account = () => {
@@ -31,6 +32,13 @@ const Account = () => {
     const [username, setUsername] = useState("");
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(5);
+    const [totalDocs, setTotalDocs] = useState(0);
+    const [pagingCounter, setPagingCounter] = useState(0);
+    const [hasPrevPage, setHasPrevPage] = useState(false);
+    const [hasNextPage, setHasNextPage] = useState(false);
+    const [showDetail, setShowDetail] = useState(false);
+    const [orderDetail, setOrderDetail] = useState({});
+
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -44,7 +52,7 @@ const Account = () => {
                                 startDate: startDate,
                                 endDate: endDate,
                                 status: statusFilter,
-                                page: 1,
+                                page: page,
                                 limit: 5
                             },
                             headers: {
@@ -54,15 +62,20 @@ const Account = () => {
                     );
                     if (response.status === 200) {
                         setOrders(response.data.docs);
+                        setHasPrevPage(response.data.hasPrevPage);
+                        setHasNextPage(response.data.hasNextPage);
+                        setTotalDocs(response.data.totalDocs);
+                        setPagingCounter(response.data.pagingCounter);
                     }
                 } catch (error) {
                     console.error("Error fetching orders:", error);
-                    toast.error("Lỗi khi tải đơn hàng");
+                    setOrders([]);
+                    // toast.error("Lỗi khi tải đơn hàng");
                 }
             };
             fetchOrders();
         }
-        if(section === "myaccount"){
+        if (section === "myaccount") {
             const fetchUser = async () => {
                 try {
                     const response = await axios.get(
@@ -85,7 +98,7 @@ const Account = () => {
             };
             fetchUser();
         }
-    }, [section, startDate, endDate, statusFilter, user]);
+    }, [section, startDate, endDate, statusFilter, user, page]);
 
     const handleChangePassword = async (e) => {
         e.preventDefault();
@@ -134,7 +147,7 @@ const Account = () => {
             });
             if (response.status === 200) {
                 toast.success("Cập nhật thông tin thành công");
-                
+
             }
         } catch (error) {
             if (error.response && error.response.status === 401) {
@@ -150,6 +163,11 @@ const Account = () => {
         navigate("/");
         setShowModal(false);
     };
+
+    const handleOrderDetail = (order) => {
+        setOrderDetail(order);
+        setShowDetail(true);
+    }
 
     if (!user) {
         return <div>Loading...</div>;
@@ -341,9 +359,9 @@ const Account = () => {
                                 </div>
 
                                 {/* Nút xóa bộ lọc */}
-                                <button className="px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-800 hover:bg-gray-200 transition shadow-md">
+                                {/* <button className="px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-800 hover:bg-gray-200 transition shadow-md">
                                     Xóa bộ lọc
-                                </button>
+                                </button> */}
                             </div>
 
                             {/* Bảng đơn hàng */}
@@ -356,6 +374,7 @@ const Account = () => {
                                         <th className="px-6 py-3 text-left text-sm font-semibold tracking-wider uppercase">Ngày</th>
                                         <th className="px-6 py-3 text-left text-sm font-semibold tracking-wider uppercase">Tổng</th>
                                         <th className="px-6 py-3 text-left text-sm font-semibold tracking-wider uppercase">Trạng thái</th>
+                                        <th className="px-6 py-3 text-left text-sm font-semibold tracking-wider uppercase">Details</th>
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white bg-opacity-50 divide-y divide-gray-200">
@@ -372,7 +391,10 @@ const Account = () => {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{order.deliveryInfo.address}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{order.deliveryInfo.phone}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{order.createdAt}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{new Date(order.createdAt).toLocaleDateString("vi-VN", {
+                                                timeZone: "Asia/Ho_Chi_Minh",
+                                            })}
+                                            </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{order.totalPrice.toLocaleString()} VND</td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span
@@ -385,57 +407,178 @@ const Account = () => {
                                                     {order.status}
                                                 </span>
                                             </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                                                <button
+                                                    className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                                                    onClick={() => handleOrderDetail(order)}
+                                                >
+                                                    <svg className="-ml-0.5 mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    Chi tiết
+                                                </button>
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
 
-                            {/* Phân trang */}
-                            <div className="bg-white bg-opacity-40 px-6 py-4 flex items-center justify-between border-t border-gray-300">
-                                <button className="px-4 py-2 bg-white bg-opacity-90 border border-gray-300 rounded-md text-sm text-gray-800 hover:bg-opacity-100 transition">
-                                    Previous
-                                </button>
-                                <div className="hidden md:flex gap-1">
-                                    {[1, 2, 3].map((page) => (
-                                        <button
-                                            key={page}
-                                            className={`px-4 py-2 border text-sm rounded-md transition 
-                                                    ${page === 1
-                                                    ? 'bg-[#A78A8A] text-white border-[#A78A8A]'
-                                                    : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-100'
-                                                }`}
-                                        >
-                                            {page}
+                            {/* Pagination */}
+                            {orders.length > 0 && (
+                                <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                                    <div className="text-sm text-gray-500">
+                                        Showing <span className="font-medium">{pagingCounter}</span> to <span className="font-medium">{orders.length + pagingCounter - 1}</span> of{' '}
+                                        <span className="font-medium">{totalDocs}</span> orders
+                                    </div>
+                                    <div className="flex space-x-2">
+                                        <button className="p-2 rounded-md bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-50" onClick={() => setPage(page - 1)} disabled={!hasPrevPage}>
+                                            <IoChevronBack />
                                         </button>
-                                    ))}
+                                        <button className="px-4 py-2 rounded-md bg-[#A78A8A] text-white font-medium">{page}</button>
+                                        <button className="p-2 rounded-md bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-50" onClick={() => setPage(page + 1)} disabled={!hasNextPage}>
+                                            <IoChevronForward />
+                                        </button>
+                                    </div>
                                 </div>
-                                <button className="px-4 py-2 bg-white bg-opacity-90 border border-gray-300 rounded-md text-sm text-gray-800 hover:bg-opacity-100 transition">
-                                    Next
-                                </button>
-                            </div>
+                            )}
+
+                            {orders.length === 0 && (
+                                <div className="p-8 text-center text-gray-500">
+                                    No orders found. Start by creating a new order.
+                                </div>
+                            )}
                         </div>
 
                     )}
                 </div>
 
                 {showModal && (
-                    <div className="fixed inset-0 backdrop-blur-sm bg-black bg-opacity-30 flex justify-center items-center z-50">
-                        <div className="bg-white bg-opacity-90 backdrop-blur-lg p-6 rounded-xl shadow-2xl text-center border border-white border-opacity-30">
-                            <p className="text-lg font-medium mb-4">Bạn có muốn đăng xuất?</p>
-                            <div className="flex justify-center gap-4">
+                    <div className="fixed inset-0 bg-white/50 bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+                            <h3 className="text-lg font-medium text-gray-900 mb-4">Bạn có muốn đăng xuất?</h3>
+                            <p className="text-gray-600 mb-6">
+                                Bạn sẽ cần đăng nhập lại để tiếp tục sử dụng hệ thống.
+                            </p>
+                            <div className="flex justify-end space-x-3">
                                 <button
-                                    className="px-4 py-2 bg-red-500 bg-opacity-90 text-white rounded-lg hover:bg-opacity-100 transition shadow-md"
-                                    onClick={handleLogout}
-                                >
-                                    Có
-                                </button>
-                                <button
-                                    className="px-4 py-2 bg-gray-200 bg-opacity-90 text-gray-800 rounded-lg hover:bg-opacity-100 transition shadow-md"
+                                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                                     onClick={() => setShowModal(false)}
                                 >
                                     Không
                                 </button>
+                                <button
+                                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                                    onClick={handleLogout}
+                                >
+                                    Có
+                                </button>
                             </div>
+                        </div>
+                    </div>
+                )}
+                {showDetail && (
+                    <div className="fixed inset-0 flex items-center justify-center z-50 bg-white/50 ">
+                        <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-xl max-h-[90vh] overflow-y-auto">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-2xl font-bold text-gray-800">Chi tiết đơn hàng</h2>
+                                <button
+                                    onClick={() => setShowDetail(false)}
+                                    className="text-gray-500 hover:text-gray-700 transition-colors"
+                                >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            {/* Thông tin khách hàng */}
+                            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                                <h3 className="font-semibold text-lg text-gray-700 mb-3 flex items-center gap-2">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                    Thông tin khách hàng
+                                </h3>
+                                <div className="space-y-2 text-gray-600">
+                                    <p className="flex items-center gap-2">
+                                        <span className="font-medium text-gray-700">Tên:</span>
+                                        {orderDetail.customerId?.name || "Không có thông tin"}
+                                    </p>
+                                    <p className="flex items-center gap-2">
+                                        <span className="font-medium text-gray-700">SĐT:</span>
+                                        {orderDetail.deliveryInfo?.phone || "Không có thông tin"}
+                                    </p>
+                                    <p className="flex items-center gap-2">
+                                        <span className="font-medium text-gray-700">Địa chỉ:</span>
+                                        {orderDetail.deliveryInfo?.address || "Không có thông tin"}
+                                    </p>
+                                    <p className="flex items-center gap-2">
+                                        <span className="font-medium text-gray-700">Ngày nhận:</span>
+                                        {new Date(orderDetail.deliveryInfo.deliveryDate).toLocaleDateString("vi-VN", {
+                                            timeZone: "Asia/Ho_Chi_Minh",
+                                        })}
+                                    </p>
+                                    <p className="flex items-center gap-2">
+                                        <span className="font-medium text-gray-700">Giờ nhận:</span>
+                                        {orderDetail.deliveryInfo?.deliveryTime || "Không có thông tin"}
+                                    </p>
+                                    {orderDetail.deliveryInfo?.note && (
+                                        <p className="flex items-start gap-2">
+                                            <span className="font-medium text-gray-700">Ghi chú:</span>
+                                            <span className="italic">{orderDetail.deliveryInfo.note}</span>
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Danh sách sản phẩm */}
+                            <div className="mb-6">
+                                <h3 className="font-semibold text-lg text-gray-700 mb-3 flex items-center gap-2">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                    </svg>
+                                    Sản phẩm đã đặt
+                                </h3>
+                                <div className="space-y-4">
+                                    {orderDetail.item?.map((product, index) => (
+                                        <div key={index} className="flex gap-4 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                                            <img
+                                                src={product.photo || "/placeholder-product.jpg"}
+                                                alt={product.name}
+                                                className="w-16 h-16 rounded-lg object-cover border border-gray-200"
+                                                onError={(e) => {
+                                                    e.target.src = "/placeholder-product.jpg";
+                                                }}
+                                            />
+                                            <div className="flex-1">
+                                                <p className="font-medium text-gray-800">{product.name}</p>
+                                                <div className="flex justify-between mt-1 text-sm text-gray-500">
+                                                    <span>Số lượng: {product.qty}</span>
+                                                    <span>{parseInt(product.price).toLocaleString()} VND</span>
+                                                </div>
+                                                <div className="mt-1 text-right font-medium">
+                                                    {(product.qty * product.price).toLocaleString()} VND
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Tổng tiền */}
+                            <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                                <span className="font-semibold text-gray-700">Tổng cộng:</span>
+                                <span className="text-xl font-bold text-[#C75146]">
+                                    {parseInt(orderDetail.totalPrice).toLocaleString()} VND
+                                </span>
+                            </div>
+
+                            <button
+                                onClick={() => setShowDetail(false)}
+                                className="mt-6 w-full py-3 bg-[#C75146] hover:bg-[#A8433A] text-white font-medium rounded-lg transition-colors shadow-md hover:shadow-lg"
+                            >
+                                Đóng
+                            </button>
                         </div>
                     </div>
                 )}

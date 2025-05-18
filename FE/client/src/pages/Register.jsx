@@ -62,8 +62,14 @@ const Register = () => {
             if (response.status === 201) {
                 const { user, token } = response.data;
                 login(user, token);
-                toast.success("Registration successful!");
-                navigate("/");
+                toast.success("Registration successful!", {
+                    position: "top-center",
+                    autoClose: 2000,
+                }
+                );
+                setTimeout(() => {
+                    navigate("/");
+                }, 2000);
             }
         } catch (error) {
             console.error("Registration error:", error);
@@ -97,6 +103,9 @@ const Register = () => {
                                         onChange={(e) => setUsername(e.target.value)}
                                         value={username}
                                         className="py-2 px-1 w-full focus:outline-none text-gray-500 bg-transparent"
+                                        pattern="[A-Za-z0-9]+"
+                                        required
+                                        placeholder="Enter your username"
 
                                     />
                                 </div>
@@ -110,6 +119,9 @@ const Register = () => {
                                         value={email}
                                         id="email"
                                         className="py-2 px-1 w-full focus:outline-none text-gray-500 bg-transparent"
+                                        pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                                        placeholder="Enter your email"
+                                        required
 
                                     />
                                 </div>
@@ -125,6 +137,9 @@ const Register = () => {
                                         onChange={(e) => setFullName(e.target.value)}
                                         value={fullName}
                                         className="py-2 px-1 w-full focus:outline-none  text-gray-500 bg-transparent"
+                                        pattern="[A-Za-z]+"
+                                        required
+                                        placeholder="Enter your full name"
 
                                     />
                                 </div>
@@ -139,6 +154,9 @@ const Register = () => {
                                         value={password}
                                         id="passWord"
                                         className=" py-2 px-1 w-full focus:outline-none text-gray-500 bg-transparent"
+                                        pattern="[A-Za-z0-9]{8,}"
+                                        placeholder="Enter your password"
+                                        required
 
                                     />
                                 </div>
@@ -152,6 +170,9 @@ const Register = () => {
                                         value={confirmPassword}
                                         id="confirmPassWord"
                                         className=" py-2 px-1 w-full focus:outline-none  text-gray-500 bg-transparent"
+                                        pattern="[A-Za-z0-9]{8,}"
+                                        placeholder="Confirm your password"
+                                        required
 
                                     />
                                 </div>

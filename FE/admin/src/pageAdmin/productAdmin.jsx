@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { VscSearch, VscEdit, VscTrash } from "react-icons/vsc";
 import { useEffect } from "react";
+import { FiEdit2 } from "react-icons/fi";
+import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
 
 const ProductAdmin = () => {
@@ -27,7 +29,7 @@ const ProductAdmin = () => {
     name: "",
     category: "",
     price: "",
-    image: "",
+    image: null,
     description: "",
   });
 
@@ -68,27 +70,65 @@ const ProductAdmin = () => {
 
   // Hàm mở form edit và điền dữ liệu sản phẩm vào form
   const handleEditClick = (product) => {
+    console.log(product);
     setEditingProduct({
-      id: product.id,
+      id: product._id,
       name: product.name,
       category: product.category,
       price: product.price,
-      image: product.photo,
       description: product.description
     });
     setShowEdit(true);
   };
 
   // Hàm xử lý cập nhật sản phẩm
-  const handleUpdateProduct = () => {
-    if (!editingProduct.name || !editingProduct.category || !editingProduct.price || !editingProduct.image) {
+  const handleUpdateProduct = async () => {
+    if (!editingProduct.name || !editingProduct.category || !editingProduct.price) {
       alert("Please fill in all required fields!");
       return;
     }
 
-    setProducts(Products.map(product =>
-      product.id === editingProduct.id ? editingProduct : product
-    ));
+    const formData = new FormData();
+    formData.append("name", editingProduct.name);
+    formData.append("category", editingProduct.category);
+    formData.append("price", editingProduct.price);
+    formData.append("description", editingProduct.description);
+    if (editingProduct.image) {
+      formData.append("image", editingProduct.image);
+    } // đây là File object
+
+    try {
+      const response = await axios.put(`${import.meta.env.VITE_API_URL}/api/menu/${editingProduct.id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
+
+      if (response.status === 200) {
+        toast.success("Cập nhật sản phẩm thành công!", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false
+        });
+        // Cập nhật danh sách sản phẩm nếu cần thiết
+        setTimeout(() => {
+          setLoading(true); // Trigger useEffect fetch lại
+        }, 3000); // Trigger useEffect fetch lại
+      }
+    }
+    catch (error) {
+      console.error("Error updating product:", error);
+    }
+    // Reset form
+    setEditingProduct({
+      id: null,
+      name: "",
+      category: "",
+      price: "",
+      image: "",
+      description: "",
+    });
     setShowEdit(false);
   };
 
@@ -103,8 +143,33 @@ const ProductAdmin = () => {
     setShowConfirm(true);
   }
 
-  const handleConfirmDelete = () => {
-    setProducts(Products.filter(product => product.id !== selectId));
+  const handleConfirmDelete = async () => {
+    try {
+      const response = await axios.delete(`${import.meta.env.VITE_API_URL}/api/menu/${selectId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      if (response.status === 200) {
+        toast.success("Xóa sản phẩm thành công!", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false
+        });
+
+        setTimeout(() => {
+          setLoading(true); // Trigger useEffect fetch lại
+        }, 3000); // Trigger useEffect fetch lại
+      }
+    }
+    catch (error) {
+      console.error("Error deleting product:", error);
+      toast.error("Xóa sản phẩm thất bại!", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false
+      });
+    }
     setShowConfirm(false);
   }
 
@@ -134,8 +199,17 @@ const ProductAdmin = () => {
         },
       });
 
+      if (response.status === 201) {
+        toast.success("Thêm sản phẩm thành công!", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false
+        });
+      }
       // Cập nhật danh sách sản phẩm nếu cần thiết bg-[#F8E9E7]
-      setLoading(true); // Trigger useEffect fetch lại
+      setTimeout(() => {
+        setLoading(true); // Trigger useEffect fetch lại
+      }, 3000); // Trigger useEffect fetch lại
     } catch (error) {
       console.error("Error adding product:", error);
     }
@@ -275,84 +349,70 @@ const ProductAdmin = () => {
           </div>
         </div>
       )}
-      <div className="mt-8 ml-6 mr-6">
-
-        <div className="border-3 bg-white border-black flex items-center mb-8">
-          <VscSearch size={20} className="text-gray-600 ml-3" />
-          <input
-            type="search"
-            placeholder="Search for preferred products"
-            className="placeholder-gray-500 h-10 outline-none ml-4 w-full"
-            value={searchTerm}
-            onChange={handleSearchChange}
-          />
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        {/* Title section */}
+        <div className="order-1 md:order-none">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Product Management</h1>
+          <p className="text-gray-500 text-sm md:text-base">Manage your bakery products</p>
         </div>
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <button
-              className="relative bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xl font-medium py-3 px-8 mb-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:from-blue-600 hover:to-blue-700 active:scale-95 active:shadow-inner transform-gpu"
-              onClick={() => setAddItem(true)}
-            >
-              <span className="relative z-10 flex items-center justify-center">
-                Add more products
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 ml-2"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </span>
-            </button>
+
+        {/* Search bar */}
+        <div className="order-2 md:order-none w-full md:w-auto">
+          <div className="relative">
+            <VscSearch
+              size={20}
+              className="text-gray-600 absolute left-3 top-1/2 transform -translate-y-1/2"
+            />
+            <input
+              type="search"
+              placeholder="Search for preferred products"
+              className="w-full md:w-64 placeholder-gray-500 h-10 pl-10 pr-4 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#A78A8A]"
+              value={searchTerm}
+              onChange={handleSearchChange}
+            />
           </div>
-          <div className="relative w-full max-w-xs mb-8">
+        </div>
+
+        {/* Filters and Add Product button */}
+        <div className="order-3 md:order-none w-full md:w-auto flex flex-col md:flex-row items-start md:items-center gap-4">
+          {/* Category filter */}
+          <div className="w-full md:w-auto">
+            <label htmlFor="categoryFilter" className="sr-only">Filter by category</label>
             <select
+              id="categoryFilter"
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="block appearance-none w-full bg-white border-2 border-gray-200 hover:border-blue-400 focus:border-blue-500 rounded-lg px-4 py-3 pr-8 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all duration-200 shadow-sm"
+              className="w-full md:w-40 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A78A8A]"
             >
-              <option
-                className="py-2 text-lg hover:bg-blue-100"
-                value="ALL"
-              >
-                ALL
-              </option>
-              <option
-                className="py-2 text-lg hover:bg-blue-100"
-                value="BIRTHDAY CAKE"
-              >
-                BIRTHDAY CAKE
-              </option>
-              <option
-                className="py-2 text-lg hover:bg-blue-100"
-                value="COOKIE"
-              >
-                COOKIE
-              </option>
-              <option
-                className="py-2 text-lg hover:bg-blue-100"
-                value="BREAD"
-              >
-                BREAD
-              </option>
-              <option
-                className="py-2 text-lg hover:bg-blue-100"
-                value="PASTRY"
-              >
-                PASTRY
-              </option>
+              <option value="ALL">All Categories</option>
+              <option value="BIRTHDAY CAKE">Birthday Cake</option>
+              <option value="COOKIE">Cookie</option>
+              <option value="BREAD">Bread</option>
+              <option value="PASTRY">Pastry</option>
             </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-              <svg className="fill-current h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-              </svg>
-            </div>
           </div>
+
+          {/* Add Product button */}
+          <button
+            className="w-full md:w-auto bg-[#A78A8A] text-white font-medium py-2 px-6 rounded-md text-sm hover:bg-[#8a6d6d] focus:outline-none focus:ring-1 focus:ring-[#A78A8A] focus:ring-offset-1 transition-colors"
+            onClick={() => setAddItem(true)}
+          >
+            <span className="flex items-center justify-center">
+              Add Product
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 ml-2"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </span>
+          </button>
         </div>
       </div>
 
@@ -366,25 +426,32 @@ const ProductAdmin = () => {
               <img
                 src={product.photo}
                 alt={product.name}
-                className="w-full h-48 object-cover"
+                className="w-full h-54 object-cover"
               />
               <div className="p-4 flex flex-col flex-grow">
                 <h3 className="text-lg font-semibold truncate">{product.name}</h3>
-                <p className="text-gray-600 mt-1">${product.price}</p>
+                <p className="text-gray-600 mt-1">{product.price} VND</p>
                 <div className="mt-4 flex justify-center gap-4">
                   <button
-                    onClick={() => handleDeleteClick(product.id)}
+                    onClick={() => handleDeleteClick(product._id)}
                     className="text-red-600 hover:text-red-800"
                     title="Delete"
                   >
                     <VscTrash size={24} />
                   </button>
-                  <button
+                  {/* <button
                     onClick={() => handleEditClick(product)}
                     className="text-blue-600 hover:text-blue-800"
                     title="Edit"
                   >
                     <VscEdit size={24} />
+                  </button> */}
+                  <button 
+                    onClick={() => handleEditClick(product)}
+                    className="text-blue-600 hover:text-blue-800 p-1 rounded"
+                    title="Edit"
+                  >
+                    <FiEdit2 size={24} />
                   </button>
                 </div>
               </div>
@@ -469,23 +536,50 @@ const ProductAdmin = () => {
       </div>
 
       {showConfirm === true && (
-        <div className="fixed top-5 left-10 h-50 right-10 flex justify-center items-center">
-          <div className="flex flex-col bg-white shadow-2xl h-44 items-center">
-            <div className="mx-4 mt-10 text-xl w-72 text-center">
-              Are you sure you want to delete this product?
-            </div>
-            <div className="flex mt-4 gap-10">
+        <div className="fixed inset-0 bg-white/50 bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg shadow-md mt-20 w-96 border border-gray-200 animate-slide-down">
+            {/* Header */}
+            <div className="border-b border-gray-200 p-4 flex justify-between items-center">
+              <h3 className="text-lg font-medium text-gray-900">Confirm deletion</h3>
               <button
-                className="border-2 p-2 w-16 bg-green-600 text-white"
-                onClick={() => handleConfirmDelete()}
+                onClick={() => setShowConfirm(false)}
+                className="text-gray-400 hover:text-gray-500"
               >
-                YES
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 text-red-500 mt-0.5">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-gray-700">
+                    This action will permanently delete the product. Are you sure?
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="bg-gray-50 px-4 py-3 flex justify-end space-x-3 rounded-b-lg">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded border border-gray-300 transition-colors"
+              >
+                Cancel
               </button>
               <button
-                className="border-2 p-2 w-16 bg-red-700 text-white"
-                onClick={() => setShowConfirm(false)}
+                onClick={() => handleConfirmDelete()}
+                className="px-3 py-1.5 text-sm text-white bg-red-600 hover:bg-red-700 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
               >
-                NO
+                Delete
               </button>
             </div>
           </div>
@@ -553,28 +647,21 @@ const ProductAdmin = () => {
                   <div className="flex items-center">
                     {editingProduct.image && (
                       <img
-                        src={editingProduct.image}
+                        src={URL.createObjectURL(editingProduct.image)}
                         alt="Preview"
                         className="w-16 h-16 object-cover mr-2 rounded"
                       />
                     )}
+
                     <input
                       type="file"
                       onChange={(e) => {
                         const file = e.target.files[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onloadend = () => {
-                            setEditingProduct({
-                              ...editingProduct,
-                              image: reader.result,
-                            });
-                          };
-                          reader.readAsDataURL(file);
-                        }
+                        setEditingProduct({
+                          ...editingProduct,
+                          image: file, // giữ nguyên là file object
+                        });
                       }}
-                      className="w-full p-2 border border-gray-300 rounded"
-                      accept="image/*"
                     />
                   </div>
                 </div>
@@ -608,6 +695,7 @@ const ProductAdmin = () => {
           </div>
         </div>
       )}
+      <ToastContainer />
     </div>
   );
 }

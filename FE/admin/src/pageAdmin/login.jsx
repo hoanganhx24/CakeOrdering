@@ -4,7 +4,8 @@ import { FaUserAlt, FaKey, FaSpinner } from 'react-icons/fa';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useEffect } from 'react';
-const login = () => {
+import { ToastContainer, toast } from 'react-toastify';
+const Login = () => {
     const { login, logout, user } = useAuth();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -17,15 +18,17 @@ const login = () => {
         }
     }, [user]);
 
-    if (!user) {
-        return (
-            <div>
-                <>
-                    <FaSpinner className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
-                    Đang đăng nhập...
-                </>
-            </div>
-        );
+    if (isLoading) {
+        if (!user) {
+            return (
+                <div>
+                    <>
+                        <FaSpinner className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
+                        Đang đăng nhập...
+                    </>
+                </div>
+            );
+        }
     }
 
     const handleSubmit = async (e) => {
@@ -33,8 +36,8 @@ const login = () => {
         setIsLoading(true);
         try {
             const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
-                username,
-                password
+                username: username,
+                password: password
             })
             if (response.status === 200) {
                 const { user, token } = response.data;
@@ -43,13 +46,24 @@ const login = () => {
                     navigate("/homeAdmin/product")
                 }
                 else {
-                    alert("Tai khoan khong co quyen truy cap")
+                    toast.error("Tài khoản của bạn không có quyền truy cập vào trang này!", {
+                        position: "top-center",
+                        autoClose: 2000,
+                    });
                 }
+
             }
         }
         catch (error) {
-            console.error(error);
+            console.log("Login error:", error);
+            if (error.response && error.response.status === 401) {
+                toast.error("Sai tài khoản hoặc mật khẩu!", {
+                    position: "top-right",
+                    autoClose: 2000,
+                });
+            }
         }
+
         console.log({ username, password });
         // Giả lập loading
         setTimeout(() => setIsLoading(false), 1500);
@@ -124,7 +138,8 @@ const login = () => {
 
                 </div>
             </div>
+            <ToastContainer />
         </div>
     );
 }
-export default login;
+export default Login;

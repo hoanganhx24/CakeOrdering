@@ -18,7 +18,11 @@ module.exports.getUser = asyncHandler(async (req, res) => {
     }
 
     if(_search) {
-        query.name = { $regex: _search, $options: 'i' };;
+        query.$or = [
+        { name: { $regex: _search, $options: 'i' } },
+        { email: { $regex: _search, $options: 'i' } },
+        { username: { $regex: _search, $options: 'i' } }
+    ];
     }
     const users = await User.paginate(query, options);
 
