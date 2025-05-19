@@ -84,7 +84,7 @@ const ProductAdmin = () => {
   // Hàm xử lý cập nhật sản phẩm
   const handleUpdateProduct = async () => {
     if (!editingProduct.name || !editingProduct.category || !editingProduct.price) {
-      alert("Please fill in all required fields!");
+      toast.error("Please fill in all required fields!");
       return;
     }
 
@@ -180,7 +180,7 @@ const ProductAdmin = () => {
 
   const handleAddItem = async () => {
     if (!newProduct.name || !newProduct.category || !newProduct.price || !newProduct.image) {
-      alert("Please fill in all required fields!");
+      toast.error("Please fill in all required fields!");
       return;
     }
 
@@ -212,6 +212,11 @@ const ProductAdmin = () => {
       }, 3000); // Trigger useEffect fetch lại
     } catch (error) {
       console.error("Error adding product:", error);
+      if(error.response.status === 400) {
+        toast.error("Sản phẩm đã tồn tại!", {
+          position: "top-right",
+          autoClose: 2000,})
+      }
     }
 
     setAddItem(false);

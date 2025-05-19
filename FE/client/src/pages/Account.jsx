@@ -25,8 +25,8 @@ const Account = () => {
     const [oldPassword, setOldPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [startDate, setStartDate] = useState(null);
-    const [endDate, setEndDate] = useState(null);
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
     const [statusFilter, setStatusFilter] = useState("ALL");
     const [orders, setOrders] = useState([]);
     const [username, setUsername] = useState("");
@@ -60,13 +60,13 @@ const Account = () => {
                             },
                         }
                     );
-                    if (response.status === 200) {
+                    console.log(response.data.docs);
+                    
                         setOrders(response.data.docs);
                         setHasPrevPage(response.data.hasPrevPage);
                         setHasNextPage(response.data.hasNextPage);
                         setTotalDocs(response.data.totalDocs);
                         setPagingCounter(response.data.pagingCounter);
-                    }
                 } catch (error) {
                     console.error("Error fetching orders:", error);
                     setOrders([]);
@@ -389,7 +389,7 @@ const Account = () => {
                                                     ))}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{order.deliveryInfo.address}</td>
+                                            <td className="px-6 py-4  text-sm text-gray-700">{order.deliveryInfo.address}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{order.deliveryInfo.phone}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{new Date(order.createdAt).toLocaleDateString("vi-VN", {
                                                 timeZone: "Asia/Ho_Chi_Minh",

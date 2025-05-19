@@ -69,6 +69,10 @@ module.exports.getOrder = asyncHandler(async (req, res) => {
             $lte: new Date(endDate)
         }
     }
+    options.populate = {
+        path: 'customerId',
+        select: 'name email'
+    };
     if (status && status !== 'ALL') {
         query.status = status;
     }

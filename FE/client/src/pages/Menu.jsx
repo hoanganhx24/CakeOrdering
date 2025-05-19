@@ -96,7 +96,10 @@ const Menu = () => {
                             placeholder="Search for preferred products..."
                             className="block w-full h-14 pl-14 pr-6 text-lg rounded-xl border-2 border-gray-300 bg-white shadow-sm hover:border-[#F16464] focus:border-[#F16464] focus:ring-2 focus:ring-[#F8E9E7] outline-none transition-all duration-300"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => {
+                                setCurrentPage(1);
+                                setSortOption("");
+                                setSearchTerm(e.target.value)}}
                         />
                     </div>
                     
@@ -110,6 +113,8 @@ const Menu = () => {
                                         key={category}
                                         className={`border-2 border-gray-400 rounded-md px-4 py-2 hover:bg-[#F8E9E7] hover:text-black ${selectedCategory === category ? "bg-[#F8E9E7] text-black" : ""}`}
                                         onClick={() => {
+                                            setCurrentPage(1);
+                                            setSortOption("");
                                             AOS.refresh()
                                             setSelectedCategory(category);
                                             navigate(`/menu/${category}`);
@@ -123,7 +128,10 @@ const Menu = () => {
                         {/* Sort */}
                         <div className="flex gap-6 mt-20 justify-center items-center absolute right-8">
                             {/* <div className=" text-2xl ">Sap xep theo:</div> */}
-                            <select className=" rounded-md h-10 w-40 bg-white border-2 border-gray-200 text-gray-600 text-lg font-medium focus:border-[#F16464] focus:outline-none focus:ring-2 focus:ring-[#F8E9E7] transition-all duration-300 hover:border-gray-300" onChange={(e) => setSortOption(e.target.value)} value={sortOption}>
+                            <select className=" rounded-md h-10 w-40 bg-white border-2 border-gray-200 text-gray-600 text-lg font-medium focus:border-[#F16464] focus:outline-none focus:ring-2 focus:ring-[#F8E9E7] transition-all duration-300 hover:border-gray-300" onChange={(e) =>{
+                                setCurrentPage(1);
+                                setSortOption("");
+                                 setSortOption(e.target.value)}} value={sortOption}>
                                 <option value="">Default sorting</option>
                                 <option value="asc">Price: Low to High</option>
                                 <option value="desc">Price: High to Low</option>

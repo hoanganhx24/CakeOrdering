@@ -137,7 +137,7 @@ const Register = () => {
                                         onChange={(e) => setFullName(e.target.value)}
                                         value={fullName}
                                         className="py-2 px-1 w-full focus:outline-none  text-gray-500 bg-transparent"
-                                        pattern="[A-Za-z]+"
+                                        pattern="[A-Za-zÀ-Ỹà-ỹĐđ\s]+"
                                         required
                                         placeholder="Enter your full name"
 
