@@ -77,6 +77,17 @@ const orderSchema = mongoose.Schema(
             type: deliveryInfoSchema,
             require: true,
         },
+        paymentStatus: {
+            type: Number,
+            enum: [0, 1],
+            require: true,
+            default: 0,
+        },
+        paymentMethod: {
+            type: Number,
+            enum: [0, 1],
+            require: true,
+        },
     },
     {
         timestamps: true,

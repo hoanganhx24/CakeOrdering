@@ -310,8 +310,8 @@ const Dashboard = () => {
                                 <p className="flex items-center gap-2">
                                     <span className="font-medium text-gray-700">Ngày nhận:</span>
                                     {new Date(orderDetail.deliveryInfo.deliveryDate).toLocaleDateString("vi-VN", {
-                                            timeZone: "Asia/Ho_Chi_Minh",
-                                        })}
+                                        timeZone: "Asia/Ho_Chi_Minh",
+                                    })}
                                 </p>
                                 <p className="flex items-center gap-2">
                                     <span className="font-medium text-gray-700">Giờ nhận:</span>
@@ -323,6 +323,14 @@ const Dashboard = () => {
                                         <span className="italic">{orderDetail.deliveryInfo.note}</span>
                                     </p>
                                 )}
+                                <p className="flex items-center gap-2">
+                                    <span className="font-medium text-gray-700">Phương thức thanh toán</span>
+                                    {orderDetail.paymentMethod === 0 ? "COD" : "VNPay"}
+                                </p>
+                                <p className="flex items-center gap-2">
+                                    <span className="font-medium text-gray-700">Trạng thái thanh toán: </span>
+                                    {orderDetail.paymentStatus === 0 ? "Chưa thanh toán" : "Đã thanh toán"}
+                                </p>
                             </div>
                         </div>
 

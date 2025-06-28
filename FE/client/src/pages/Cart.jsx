@@ -19,6 +19,7 @@ const Cart = () => {
     const [phone, setPhone] = useState("");
     const [address, setAddress] = useState("");
     const [note, setNote] = useState("");
+    const [paymentMethod, setPaymentMethod] = useState(0);
 
 
     const token = localStorage.getItem("token");
@@ -46,14 +47,14 @@ const Cart = () => {
         fetchCart();
     }, [token]);
 
-    const deleteItemCart = async (productId)=>{
+    const deleteItemCart = async (productId) => {
         try {
-            const response = await axios.delete(`${import.meta.env.VITE_API_URL}/api/cart/${productId}`, 
+            const response = await axios.delete(`${import.meta.env.VITE_API_URL}/api/cart/${productId}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
-            });
+                });
             console.log(response.data);
             setCart(response.data.item);
             setTotalCostAll(response.data.totalPrice);
@@ -82,43 +83,71 @@ const Cart = () => {
             console.error("Error changing quantity of product:", error);
         }
     }
-    const handleClickOrder =  async (e) => {
+    const handleClickOrder = async (e) => {
         e.preventDefault();
+
         if (cart.length === 0) {
             alert("Cart is empty!");
             return;
         }
 
-        try{
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/order`, {
-                deliveryDate: deliveryDate,
-                deliveryTime: deliveryTime,
-                phone: phone,
-                address: address,
-                note: note,
+        try {
+
+            console.log(paymentMethod);
+
+            const orderRes = await axios.post(`${import.meta.env.VITE_API_URL}/api/order`, {
+                deliveryDate,
+                deliveryTime,
+                phone,
+                address,
+                note,
+                paymentMethod,
             }, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            console.log(response.data);
-            if (response.status === 201){
+
+            const order = orderRes.data;
+
+            console.log("Order created:", order);
+
+            if (paymentMethod === 1) {
+
+                console.log("Processing payment with VNPAY...");
+
+                const payRes = await axios.post(`${import.meta.env.VITE_API_URL}/api/payment`, {
+                    amount: order.totalPrice,
+                    orderId: order._id,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                console.log("Payment response:", payRes.data);
+                const vnpUrl = payRes.data; // URL trả về từ VNPay
+                window.location.href = vnpUrl;
+            } else {
+                // Nếu là COD thì xử lý bình thường
                 toast.success("Đặt hàng thành công!", {
                     position: "top-center",
                     autoClose: 2000,
-                    hideProgressBar: false
-                    , closeOnClick: true,
-                    pauseOnHover: true,});
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                });
+
                 setTimeout(() => {
                     navigate("/ordersuccess");
                 }, 3000);
             }
-        }
-        catch (error) {
+        } catch (error) {
             console.error("Error placing order:", error);
             alert("Đặt hàng thất bại!");
         }
-    }
+    };
+
 
     console.log(deliveryDate);
     console.log(deliveryTime);
@@ -311,6 +340,37 @@ const Cart = () => {
                                 <Link to="/menu/ALL">Continue Shopping</Link>
                             </button>
                         </div>
+                    </div>
+                    <div className="max-w-md p-4 space-y-4">
+                        <h2 className="text-lg font-semibold">Chọn phương thức thanh toán</h2>
+
+                        {/* Ship COD Option */}
+                        <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input
+                                type="radio"
+                                className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                checked={paymentMethod === 0}
+                                onChange={() => setPaymentMethod(0)}
+                            />
+                            <span className="ml-3 block text-gray-700 font-medium">Ship COD</span>
+                        </label>
+
+
+                        {/* VNPAY Option */}
+                        <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input
+                                type="radio"
+                                className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                checked={paymentMethod === 1}
+                                onChange={() => setPaymentMethod(1)}
+                            />
+                            <span className="ml-3 block text-gray-700 font-medium">VNPAY</span>
+                        </label>
+
+                        {/* <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                            <p className="font-medium">Phương thức đã chọn:</p>
+                            <p className="text-blue-600">{paymentMethod}</p>
+                        </div> */}
                     </div>
                 </div>
             </div>

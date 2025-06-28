@@ -7,9 +7,9 @@ const User = require('../models/user.model');
 // [POST] /api/order
 module.exports.createOrder = asyncHandler(async (req, res) => {
     const userId = req.user._id;
-    const { deliveryDate, deliveryTime, phone, address, note } = req.body;
+    const { deliveryDate, deliveryTime, phone, address, note, paymentMethod } = req.body;
 
-    if (!deliveryDate || !deliveryTime || !phone || !address) {
+    if (!deliveryDate || !deliveryTime || !phone || !address || paymentMethod === undefined) {
         return res.status(400).json({ message: 'Khong du thong tin van chuyen' });
     }
 
@@ -37,7 +37,8 @@ module.exports.createOrder = asyncHandler(async (req, res) => {
             phone: phone,
             address: address,
             note: note
-        }
+        },
+        paymentMethod: paymentMethod
     });
 
     await order.save();
@@ -219,6 +220,21 @@ module.exports.updateStatusOrder = asyncHandler(async (req, res) => {
     }
 
     order.status = status;
+    await order.save();
+    res.status(200).json(order);
+});
+
+module.exports.updatePaymentStatus = asyncHandler(async (req, res) => {
+    const { idOrder, paymentStatus } = req.body;
+
+    const order = await Order.findById(idOrder);
+    if (!order) {
+        return res.status(404).json({ message: 'Order not found' });
+    }
+    if (paymentStatus !== 0 && paymentStatus !== 1) {
+        return res.status(400).json({ message: 'Invalid payment status' });
+    }
+    order.paymentStatus = paymentStatus;
     await order.save();
     res.status(200).json(order);
 });

@@ -68,7 +68,7 @@ const NewOrder = () => {
     const handleUpdateOrderStatus = async (id, newStatus) => {
         const token = localStorage.getItem("token");
         try {
-            const response = await axios.patch(`${import.meta.env.VITE_API_URL}/api/order/${id}`, { status: newStatus }, {
+            const response = await axios.patch(`${import.meta.env.VITE_API_URL}/api/order/updateStatus/${id}`, { status: newStatus }, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -293,7 +293,7 @@ const NewOrder = () => {
                 {orders.length > 0 && (
                     <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
                         <div className="text-sm text-gray-500">
-                            Showing <span className="font-medium">{pagingCounter}</span> to <span className="font-medium">{orders.length + pagingCounter -1}</span> of{' '}
+                            Showing <span className="font-medium">{pagingCounter}</span> to <span className="font-medium">{orders.length + pagingCounter - 1}</span> of{' '}
                             <span className="font-medium">{totalDocs}</span> orders
                         </div>
                         <div className="flex space-x-2">
@@ -355,8 +355,8 @@ const NewOrder = () => {
                                 <p className="flex items-center gap-2">
                                     <span className="font-medium text-gray-700">Ngày nhận:</span>
                                     {new Date(orderDetail.deliveryInfo.deliveryDate).toLocaleDateString("vi-VN", {
-                                            timeZone: "Asia/Ho_Chi_Minh",
-                                        })}
+                                        timeZone: "Asia/Ho_Chi_Minh",
+                                    })}
                                 </p>
                                 <p className="flex items-center gap-2">
                                     <span className="font-medium text-gray-700">Giờ nhận:</span>
@@ -368,6 +368,14 @@ const NewOrder = () => {
                                         <span className="italic">{orderDetail.deliveryInfo.note}</span>
                                     </p>
                                 )}
+                                <p className="flex items-center gap-2">
+                                    <span className="font-medium text-gray-700">Phương thức thanh toán</span>
+                                    {orderDetail.paymentMethod === 0 ? "COD" : "VNPay"}
+                                </p>
+                                <p className="flex items-center gap-2">
+                                    <span className="font-medium text-gray-700">Trạng thái thanh toán: </span>
+                                    {orderDetail.paymentStatus === 0 ? "Chưa thanh toán" : "Đã thanh toán"}
+                                </p>
                             </div>
                         </div>
 

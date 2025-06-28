@@ -61,12 +61,12 @@ const Account = () => {
                         }
                     );
                     console.log(response.data.docs);
-                    
-                        setOrders(response.data.docs);
-                        setHasPrevPage(response.data.hasPrevPage);
-                        setHasNextPage(response.data.hasNextPage);
-                        setTotalDocs(response.data.totalDocs);
-                        setPagingCounter(response.data.pagingCounter);
+
+                    setOrders(response.data.docs);
+                    setHasPrevPage(response.data.hasPrevPage);
+                    setHasNextPage(response.data.hasNextPage);
+                    setTotalDocs(response.data.totalDocs);
+                    setPagingCounter(response.data.pagingCounter);
                 } catch (error) {
                     console.error("Error fetching orders:", error);
                     setOrders([]);
@@ -167,6 +167,31 @@ const Account = () => {
     const handleOrderDetail = (order) => {
         setOrderDetail(order);
         setShowDetail(true);
+    }
+
+    const handleClickPayment = async (orderId, totalPrice) => {
+        try {
+            console.log("Processing payment with VNPAY...");
+
+            const payRes = await axios.post(`${import.meta.env.VITE_API_URL}/api/payment`, {
+                amount: totalPrice,
+                orderId: orderId
+            }, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            if (payRes.status !== 201) {
+                throw new Error("Failed to create payment");
+            }
+            console.log("Payment response:", payRes.data);
+            const vnpUrl = payRes.data; // URL trả về từ VNPay
+            window.location.href = vnpUrl;
+        }
+        catch (error) {
+            console.error("Error processing payment:", error);
+            toast.error("Lỗi khi xử lý thanh toán");
+        }
     }
 
     if (!user) {
@@ -528,6 +553,14 @@ const Account = () => {
                                             <span className="italic">{orderDetail.deliveryInfo.note}</span>
                                         </p>
                                     )}
+                                    <p className="flex items-center gap-2">
+                                        <span className="font-medium text-gray-700">Phương thức thanh toán</span>
+                                        {orderDetail.paymentMethod === 0 ? "COD" : "VNPay"}
+                                    </p>
+                                    <p className="flex items-center gap-2">
+                                        <span className="font-medium text-gray-700">Trạng thái thanh toán: </span>
+                                        {orderDetail.paymentStatus === 0 ? "Chưa thanh toán" : "Đã thanh toán"}
+                                    </p>
                                 </div>
                             </div>
 
@@ -572,6 +605,15 @@ const Account = () => {
                                     {parseInt(orderDetail.totalPrice).toLocaleString()} VND
                                 </span>
                             </div>
+
+                            {(orderDetail.paymentStatus === 0 && orderDetail.paymentMethod === 1) && (
+                                <button
+                                    onClick={() => handleClickPayment(orderDetail._id, orderDetail.totalPrice)}
+                                    className="mt-6 w-full py-3  bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors shadow-md hover:shadow-lg"
+                                >
+                                    Thanh toán
+                                </button>
+                            )}
 
                             <button
                                 onClick={() => setShowDetail(false)}
